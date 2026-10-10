@@ -15,7 +15,7 @@ const COLUMNS = [
   { key: 'revenueContributionPct', label: 'Contrib.', align: 'right', type: 'number', render: (s) => pct(s.revenueContributionPct) },
   { key: 'performanceScore', label: 'Score', align: 'right', type: 'number', render: (s) => Number(s.performanceScore).toFixed(1) },
   { key: 'performanceTier', label: 'Tier', align: 'center', type: 'string', render: (s) => (
-      <span className={`inline-block px-2 py-0.5 rounded-full border text-[10px] font-bold ${tierClasses(s.performanceTier)}`}>
+      <span className={`inline-block px-2 py-0.5 rounded-full border text-[10px] font-semibold ${tierClasses(s.performanceTier)}`}>
         {s.performanceTier}
       </span>
     ) },
@@ -57,22 +57,22 @@ export default function ShopPerformanceTable({ shops = [], onSelect }) {
   const clickable = typeof onSelect === 'function';
 
   if (!shops || shops.length === 0) {
-    return <p className="text-center text-slate-400 text-sm py-8">No shops to display.</p>;
+    return <p className="text-center text-ink-muted text-sm py-8">No shops to display.</p>;
   }
 
   return (
     <div className="overflow-x-auto -mx-2">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="text-slate-500">
-            <th className="px-2 py-2 text-right font-bold text-[11px] uppercase tracking-wider">#</th>
+          <tr className="text-ink-muted">
+            <th className="px-2 py-2 text-right font-semibold text-[11px] uppercase tracking-wider">#</th>
             {COLUMNS.map((c) => (
               <th
                 key={c.key}
                 onClick={() => toggleSort(c.key)}
-                className={`px-2 py-2 font-bold text-[11px] uppercase tracking-wider cursor-pointer select-none hover:text-slate-800 whitespace-nowrap ${
+                className={`px-2 py-2 font-semibold text-[11px] uppercase tracking-wider cursor-pointer select-none hover:text-ink whitespace-nowrap ${
                   c.align === 'right' ? 'text-right' : c.align === 'center' ? 'text-center' : 'text-left'
-                } ${c.key === sortKey ? 'text-cyan-600' : ''}`}
+                } ${c.key === sortKey ? 'text-forest-600' : ''}`}
               >
                 {c.label}
                 {arrow(c.key)}
@@ -86,22 +86,22 @@ export default function ShopPerformanceTable({ shops = [], onSelect }) {
             <tr
               key={s.shopId ?? s.shopName}
               onClick={clickable ? () => onSelect(s) : undefined}
-              className={`border-t border-slate-100 ${clickable ? 'cursor-pointer hover:bg-cyan-50/60' : ''}`}
+              className={`border-t border-line ${clickable ? 'cursor-pointer hover:bg-cream-50' : ''}`}
             >
-              <td className="px-2 py-2 text-right text-slate-400 font-semibold tabular-nums">{i + 1}</td>
+              <td className="px-2 py-2 text-right text-ink-muted font-semibold tabular-nums">{i + 1}</td>
               {COLUMNS.map((c) => (
                 <td
                   key={c.key}
                   className={`px-2 py-2 tabular-nums whitespace-nowrap ${
                     c.align === 'right' ? 'text-right' : c.align === 'center' ? 'text-center' : 'text-left'
-                  } ${c.key === 'shopName' ? 'font-bold text-slate-800' : 'text-slate-600'}`}
+                  } ${c.key === 'shopName' ? 'font-semibold text-ink' : 'text-ink-soft'}`}
                 >
                   {c.render(s)}
                 </td>
               ))}
               {clickable && (
                 <td className="px-2 py-2 text-right">
-                  <span className="text-cyan-600 text-xs font-bold whitespace-nowrap">View →</span>
+                  <span className="text-forest-600 text-xs font-semibold whitespace-nowrap">View</span>
                 </td>
               )}
             </tr>

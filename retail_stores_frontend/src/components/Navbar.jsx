@@ -1,284 +1,250 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { useCart } from '../context/CartContext';
+import Logo from './Logo';
+import Icon from './Icon';
+import CartDrawer from './CartDrawer';
+import { firstName } from '../utils/catalog';
+import { price } from '../utils/format';
+
+const isAdminUser = (user) => !!user?.role?.toUpperCase().includes('ADMIN');
+
+function AnnouncementBar() {
+  return (
+    <div className="bg-forest-900 text-cream-100">
+      <div className="container-page flex h-9 items-center justify-center gap-6 text-xs">
+        <span className="flex items-center gap-2">
+          <Icon name="store" size={14} className="text-marigold-300" />
+          Real shops from your own city
+        </span>
+        <span className="hidden items-center gap-2 sm:flex">
+          <Icon name="cash" size={14} className="text-marigold-300" />
+          Pay cash on delivery or online
+        </span>
+        <span className="hidden items-center gap-2 md:flex">
+          <Icon name="percent" size={14} className="text-marigold-300" />
+          Offers applied at checkout
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SearchBox({ className = '' }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [params, setParams] = useSearchParams();
+  const onShopPage = location.pathname === '/dashboard';
+  const urlQuery = onShopPage ? params.get('q') || '' : '';
+  const [query, setQuery] = useState(urlQuery);
+
+  // Keep the box in step with the URL (back/forward, "clear filters", …).
+  useEffect(() => {
+    setQuery(urlQuery);
+  }, [urlQuery]);
+
+  const update = (value) => {
+    setQuery(value);
+    // On the shop page, filter as you type.
+    if (onShopPage) {
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value) next.set('q', value);
+          else next.delete('q');
+          return next;
+        },
+        { replace: true }
+      );
+    }
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!onShopPage) navigate(query ? `/dashboard?q=${encodeURIComponent(query)}` : '/dashboard');
+    document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <form onSubmit={submit} className={`relative ${className}`} role="search">
+      <Icon name="search" size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" />
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => update(e.target.value)}
+        placeholder="Search rice, soap, chocolate…"
+        className="h-11 w-full rounded-full border border-line bg-white pl-11 pr-4 text-sm text-ink placeholder:text-ink-muted/80 transition-colors focus:border-forest-500 focus:outline-none focus:ring-4 focus:ring-forest-100"
+        aria-label="Search products"
+      />
+    </form>
+  );
+}
+
+function AccountMenu({ user, onLogout }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const initial = user?.name?.[0]?.toUpperCase() || 'U';
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-cream-200/70 sm:pr-3"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-marigold-200 font-display text-base font-semibold text-marigold-700">
+          {initial}
+        </span>
+        <span className="hidden text-left leading-tight lg:block">
+          <span className="block text-[11px] text-ink-muted">Hello,</span>
+          <span className="block max-w-[7rem] truncate text-sm font-semibold text-ink">{firstName(user?.name)}</span>
+        </span>
+        <Icon name="chevron-down" size={16} className={`hidden text-ink-muted transition-transform sm:block ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-line bg-white p-1.5 shadow-lift animate-rise-in"
+        >
+          <div className="px-3 pb-2 pt-2.5">
+            <p className="truncate text-sm font-semibold text-ink">{user?.name}</p>
+            <p className="truncate text-xs text-ink-muted">{user?.email}</p>
+          </div>
+          <div className="my-1 h-px bg-line" />
+          {[
+            { to: '/profile', icon: 'user', label: 'Profile & address' },
+            { to: '/orders', icon: 'receipt', label: 'My orders' },
+            ...(isAdminUser(user) ? [{ to: '/admindashboard', icon: 'dashboard', label: 'Admin dashboard' }] : []),
+          ].map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-soft transition-colors hover:bg-cream-100 hover:text-ink"
+            >
+              <Icon name={item.icon} size={18} />
+              {item.label}
+            </Link>
+          ))}
+          <div className="my-1 h-px bg-line" />
+          <button
+            role="menuitem"
+            onClick={onLogout}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-tomato-600 transition-colors hover:bg-tomato-50"
+          >
+            <Icon name="logout" size={18} />
+            Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { count, total, openCart } = useCart();
   const navigate = useNavigate();
-
-  const [cart, setCart] = useState(null);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-
-  // ✅ FIX 1: Match endpoint used across ShopCard and Checkout (/api/orders/cart)
-  const fetchCart = async () => {
-    try {
-      const res = await api.get('/api/orders/cart');
-      setCart(res.data);
-    } catch (err) {
-      console.error('Failed to fetch cart:', err);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchCart();
-    }
-  }, [user]);
-
-  // ✅ FIX 2: Safely extract array items across all possible DTO field names
-  const itemsList = 
-    cart?.orderItems || 
-    cart?.order_items || 
-    cart?.items || 
-    cart?.cartItems || 
-    (Array.isArray(cart) ? cart : []);
-
-  const cartItemsCount = itemsList.length;
-  const totalAmount = cart?.totalAmount ?? cart?.total_amount ?? 0;
-
-  const handleCashCheckout = async () => {
-    setLoading(true);
-    setMessage('');
-    try {
-      await api.post('/api/orders/checkout', { paymentMode: 'COD' });
-      setMessage('Order placed successfully via Cash on Delivery!');
-      fetchCart();
-      setTimeout(() => setIsCartOpen(false), 2000);
-    } catch (err) {
-      console.error('Checkout failed:', err);
-      setMessage(err.response?.data?.message || 'Checkout failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePayOnline = async () => {
-    if (totalAmount <= 0) {
-      alert('Your cart is empty!');
-      return;
-    }
-
-    if (typeof window.Razorpay === 'undefined') {
-      alert('Razorpay SDK not loaded! Check public/index.html.');
-      return;
-    }
-
-    setLoading(true);
-    setMessage('');
-
-    try {
-      const { data } = await api.post('/api/payments/create-order', {
-        amount: totalAmount,
-      });
-
-      const options = {
-        key: data.keyId,
-        amount: data.amount,
-        currency: data.currency,
-        name: 'Retail Store Management',
-        description: 'Order Checkout',
-        order_id: data.razorpayOrderId,
-        handler: async function (response) {
-          try {
-            const verifyRes = await api.post('/api/payments/verify', {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-
-            if (verifyRes.status === 200) {
-              await api.post('/api/orders/checkout', { paymentMode: 'ONLINE' });
-              setMessage('Payment successful! Order placed.');
-              fetchCart();
-              setTimeout(() => setIsCartOpen(false), 2000);
-            }
-          } catch (verifyErr) {
-            console.error('Payment verification failed:', verifyErr);
-            alert('Payment verification failed. Please contact support.');
-          }
-        },
-        prefill: {
-          name: user?.name || '',
-          email: user?.email || '',
-        },
-        theme: {
-          color: '#0f172a',
-        },
-      };
-
-      const razorpayWindow = new window.Razorpay(options);
-      razorpayWindow.open();
-
-    } catch (err) {
-      console.error('Failed to start Razorpay payment:', err);
-      alert('Failed to initiate online payment. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const navLinkCls = ({ isActive }) =>
+    `hidden items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors md:flex ${
+      isActive ? 'text-forest-700' : 'text-ink-soft hover:text-ink'
+    }`;
+
   return (
     <>
-      <nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-slate-200/60 shadow-sm transition-all">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
-              S
-            </div>
-            <span className="font-extrabold text-xl text-slate-800 tracking-tight">
-              Retail<span className="text-cyan-600">Store</span>
-            </span>
-          </Link>
+      <AnnouncementBar />
+      <header className="sticky top-0 z-40 border-b border-line bg-cream-100/95 backdrop-blur supports-[backdrop-filter]:bg-cream-100/85">
+        <div className="container-page flex h-[72px] items-center gap-4 lg:gap-8">
+          <Logo to={user ? '/dashboard' : '/'} />
 
-          <div className="flex gap-4 items-center">
-            {user ? (
-              <>
+          {user ? (
+            <>
+              <SearchBox className="hidden flex-1 md:block md:max-w-xl" />
+
+              <div className="ml-auto flex items-center gap-1 sm:gap-2">
+                {user.city && (
+                  <span className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm text-ink-soft xl:flex">
+                    <Icon name="pin" size={16} className="text-tomato-500" />
+                    {user.city}
+                  </span>
+                )}
+                {isAdminUser(user) && (
+                  <NavLink to="/admindashboard" className={navLinkCls}>
+                    <Icon name="dashboard" size={18} />
+                    Admin
+                  </NavLink>
+                )}
+                <NavLink to="/orders" className={navLinkCls}>
+                  <Icon name="receipt" size={18} />
+                  Orders
+                </NavLink>
+
+                <AccountMenu user={user} onLogout={handleLogout} />
+
                 <button
-                  onClick={() => {
-                    fetchCart();
-                    setIsCartOpen(true);
-                  }}
-                  className="relative p-2.5 rounded-xl text-slate-600 hover:text-cyan-600 hover:bg-slate-100/60 transition-all flex items-center justify-center"
-                  title="View Cart"
+                  onClick={openCart}
+                  className="relative ml-1 flex h-11 items-center gap-2.5 rounded-full bg-forest-700 pl-3.5 pr-4 text-cream-50 transition-colors hover:bg-forest-800"
+                  aria-label={`Open basket, ${count} items`}
                 >
-                  🛒
-                  {cartItemsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                      {cartItemsCount}
+                  <Icon name="bag" size={19} />
+                  <span className="hidden text-sm font-semibold tabular sm:inline">{price(total)}</span>
+                  {count > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-marigold-400 px-1 text-[11px] font-bold text-ink ring-2 ring-cream-100">
+                      {count}
                     </span>
                   )}
                 </button>
-
-                <Link
-                  to="/profile"
-                  className="px-4 py-2 rounded-xl font-medium text-slate-600 hover:text-cyan-600 hover:bg-slate-100/60 transition-all"
-                >
-                  Profile
-                </Link>
-
-                <Link
-                  to="/checkout"
-                  className="px-5 py-2.5 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-                >
-                  Order
-                </Link>
-
-                <button
-                  onClick={handleLogout}
-                  className="px-4 py-2 rounded-xl font-medium text-red-500 hover:text-red-600 hover:bg-red-50 transition-all"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="px-5 py-2.5 rounded-xl font-semibold text-slate-700 hover:text-cyan-600 transition-colors"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-5 py-2.5 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-0.5 transition-all duration-200"
-                >
-                  Register
-                </Link>
-              </>
-            )}
-          </div>
-
-        </div>
-      </nav>
-
-      {/* Cart Drawer Modal */}
-      {isCartOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex justify-end">
-          <div className="bg-white w-full max-w-md h-full shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
-            
-            <div>
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
-                <h2 className="text-xl font-extrabold text-slate-900">Your Cart</h2>
-                <button
-                  onClick={() => setIsCartOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 font-bold text-lg p-1"
-                >
-                  ✕
-                </button>
               </div>
-
-              {message && (
-                <div className="p-4 mb-4 rounded-2xl bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
-                  {message}
-                </div>
-              )}
-
-              {cartItemsCount === 0 ? (
-                <div className="text-center py-12 text-slate-400 font-medium text-sm">
-                  Your cart is currently empty.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {itemsList.map((item, idx) => {
-                    const name = item.productName || item.product_name || item.product?.pname || item.product?.name || `Item #${idx + 1}`;
-                    const itemPrice = Number(item.price || item.product?.price || 0);
-                    const qty = Number(item.quantity || 1);
-
-                    return (
-                      <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-slate-800 text-sm">{name}</p>
-                          <p className="text-xs text-slate-500">₹{itemPrice.toFixed(2)} × {qty}</p>
-                        </div>
-                        <span className="font-extrabold text-slate-900 text-sm">
-                          ₹{(itemPrice * qty).toFixed(2)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+            </>
+          ) : (
+            <div className="ml-auto flex items-center gap-1 sm:gap-2">
+              <a href="/#how-it-works" className="hidden rounded-full px-4 py-2 text-sm font-medium text-ink-soft hover:text-ink md:block">
+                How it works
+              </a>
+              <Link to="/login" className="btn btn-ghost !px-3 sm:!px-5">
+                Sign in
+              </Link>
+              <Link to="/register" className="btn btn-primary !px-4 sm:!px-5">
+                <span className="sm:hidden">Join</span>
+                <span className="hidden sm:inline">Create account</span>
+              </Link>
             </div>
-
-            {cartItemsCount > 0 && (
-              <div className="pt-6 border-t border-slate-100 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase text-slate-400">Total Amount</span>
-                  <span className="text-2xl font-black text-slate-900">₹{Number(totalAmount).toFixed(2)}</span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={handleCashCheckout}
-                    disabled={loading}
-                    className="flex-1 py-3.5 px-4 rounded-2xl bg-cyan-600 text-white font-bold text-xs hover:bg-cyan-700 transition-all disabled:opacity-50"
-                  >
-                    💵 Cash on Delivery
-                  </button>
-
-                  <button
-                    onClick={handlePayOnline}
-                    disabled={loading}
-                    className="flex-1 py-3.5 px-4 rounded-2xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-all shadow-md hover:shadow-slate-900/20 disabled:opacity-50"
-                  >
-                    💳 Pay Online
-                  </button>
-                </div>
-              </div>
-            )}
-
-          </div>
+          )}
         </div>
-      )}
+
+        {user && (
+          <div className="container-page pb-3 md:hidden">
+            <SearchBox />
+          </div>
+        )}
+      </header>
+
+      {user && <CartDrawer />}
     </>
   );
 }

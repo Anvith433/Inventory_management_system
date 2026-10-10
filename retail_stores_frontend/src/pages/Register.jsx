@@ -1,6 +1,21 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AuthLayout from '../components/AuthLayout'
+import PasswordField from '../components/PasswordField'
+import Icon from '../components/Icon'
+
+function Field({ id, label, hint, ...props }) {
+  return (
+    <div>
+      <label htmlFor={id} className="label">
+        {label}
+      </label>
+      <input id={id} name={id} className="field" {...props} />
+      {hint && <p className="mt-1.5 text-xs text-ink-muted">{hint}</p>}
+    </div>
+  )
+}
 
 export default function Register() {
   const initialForm = {
@@ -15,6 +30,7 @@ export default function Register() {
 
   const [form, setForm] = useState(initialForm)
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
 
@@ -31,170 +47,127 @@ export default function Register() {
 
     // Validate passwords
     if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match")
+      setError("Those two passwords don't match.")
       return
     }
 
     if (form.password.length < 6) {
-      setError("Password must be at least 6 characters")
+      setError("Your password needs at least 6 characters.")
       return
     }
 
+    setSubmitting(true)
     try {
       await register(form)
-      alert('Registration successful! Please login.')
-      navigate('/login')
+      navigate('/login', { state: { registered: true, email: form.email } })
     } catch (err) {
-      setError('Registration failed. Try again.')
+      setError(err.response?.data?.message || 'We couldn’t create your account. Please try again.')
       console.error(err)
+    } finally {
+      setSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-100 p-6">
-      <div className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-lg border border-gray-200">
-        <Link to="/" className="text-cyan-600 text-sm font-medium hover:underline">
-          Back to Home
+    <AuthLayout
+      panelTitle={<>Your corner shop, <span className="italic text-marigold-300">one tap away.</span></>}
+      panelBody="Tell us where you live and we’ll show you the shops that deliver to your door — no subscriptions, no minimum basket."
+    >
+      <p className="eyebrow">Create an account</p>
+      <h1 className="mt-2 font-display text-4xl font-medium tracking-tight text-ink">Let’s get you set up</h1>
+      <p className="mt-2 text-ink-soft">
+        Already shopping with us?{' '}
+        <Link to="/login" className="font-semibold text-forest-700 underline-offset-4 hover:underline">
+          Sign in
         </Link>
+      </p>
 
-        <h2 className="text-4xl font-bold text-center mt-6 mb-2 text-gray-800">
-          Create Account
-        </h2>
-        <p className="text-center text-gray-600 mb-6">
-          Join Retail Store Management
-        </p>
+      {error && (
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-tomato-100 bg-tomato-50 p-4 text-sm text-tomato-700" role="alert">
+          <Icon name="alert" size={18} className="mt-0.5" />
+          <span>{error}</span>
+        </div>
+      )}
 
-        {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center font-medium mb-6 border border-red-200">
-            {error}
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className="mt-8 space-y-8">
+        <fieldset className="space-y-4">
+          <legend className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-forest-100 text-xs text-forest-700">1</span>
+            About you
+          </legend>
+          <Field id="name" label="Full name" placeholder="Priya Rao" autoComplete="name" value={form.name} onChange={handleChange} required />
+          <Field id="email" label="Email" type="email" placeholder="you@example.com" autoComplete="email" value={form.email} onChange={handleChange} required />
+        </fieldset>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">
-              Full Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              placeholder="John Doe"
-              value={form.name}
+        <fieldset className="space-y-4">
+          <legend className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-forest-100 text-xs text-forest-700">2</span>
+            Where should we deliver?
+          </legend>
+          <Field id="street" label="House & street" placeholder="12, 4th Cross, Indiranagar" autoComplete="street-address" value={form.street} onChange={handleChange} required />
+          <div className="grid grid-cols-[1.4fr_1fr] gap-3">
+            <Field
+              id="city"
+              label="City"
+              placeholder="Bangalore"
+              autoComplete="address-level2"
+              value={form.city}
               onChange={handleChange}
               required
-              className="w-full p-3.5 border-2 border-gray-300 rounded-xl focus:border-cyan-500 outline-none text-base transition-all"
             />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">
-              Email
-            </label>
-            <input
-              type="email"
-              name="email"
-              placeholder="john@example.com"
-              value={form.email}
+            <Field
+              id="pincode"
+              label="Pincode"
+              placeholder="560001"
+              inputMode="numeric"
+              autoComplete="postal-code"
+              pattern="[0-9]{6}"
+              title="Six digit pincode"
+              value={form.pincode}
               onChange={handleChange}
               required
-              className="w-full p-3.5 border-2 border-gray-300 rounded-xl focus:border-cyan-500 outline-none text-base transition-all"
             />
           </div>
+          <p className="-mt-1 flex items-start gap-2 text-xs text-ink-muted">
+            <Icon name="pin" size={14} className="mt-px shrink-0" />
+            We match you with shops in this city, and it can’t be changed later — so double-check the spelling.
+          </p>
+        </fieldset>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">
-              Street Address
-            </label>
-            <input
-              type="text"
-              name="street"
-              placeholder="123 Main St"
-              value={form.street}
-              onChange={handleChange}
-              required
-              className="w-full p-3.5 border-2 border-gray-300 rounded-xl focus:border-cyan-500 outline-none text-base transition-all"
-            />
-          </div>
+        <fieldset className="space-y-4">
+          <legend className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-forest-100 text-xs text-forest-700">3</span>
+            Pick a password
+          </legend>
+          <PasswordField
+            id="password"
+            name="password"
+            label="Password"
+            placeholder="At least 6 characters"
+            autoComplete="new-password"
+            value={form.password}
+            onChange={handleChange}
+            required
+            minLength={6}
+          />
+          <PasswordField
+            id="confirmPassword"
+            name="confirmPassword"
+            label="Type it once more"
+            placeholder="Same as above"
+            autoComplete="new-password"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            required
+            minLength={6}
+          />
+        </fieldset>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">
-                City
-              </label>
-              <input
-                type="text"
-                name="city"
-                placeholder="Bangalore"
-                value={form.city}
-                onChange={handleChange}
-                required
-                className="w-full p-3.5 border-2 border-gray-300 rounded-xl focus:border-cyan-500 outline-none text-base transition-all"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">
-                Pincode
-              </label>
-              <input
-                type="text"
-                name="pincode"
-                placeholder="560001"
-                value={form.pincode}
-                onChange={handleChange}
-                required
-                pattern="[0-9]{6}"
-                className="w-full p-3.5 border-2 border-gray-300 rounded-xl focus:border-cyan-500 outline-none text-base transition-all"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={handleChange}
-              required
-              minLength="6"
-              className="w-full p-3.5 border-2 border-gray-300 rounded-xl focus:border-cyan-500 outline-none text-base transition-all"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wider">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="••••••••"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              required
-              minLength="6"
-              className="w-full p-3.5 border-2 border-gray-300 rounded-xl focus:border-cyan-500 outline-none text-base transition-all"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full mt-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-          >
-            Create Account
-          </button>
-        </form>
-
-        <p className="text-center mt-6 text-gray-600">
-          Already have an account?{' '}
-          <Link to="/login" className="text-cyan-600 font-bold hover:underline">
-            Login here
-          </Link>
-        </p>
-      </div>
-    </div>
+        <button type="submit" disabled={submitting} className="btn btn-primary btn-lg w-full">
+          {submitting ? 'Setting things up…' : 'Create my account'}
+          {!submitting && <Icon name="arrow-right" size={18} />}
+        </button>
+      </form>
+    </AuthLayout>
   )
 }

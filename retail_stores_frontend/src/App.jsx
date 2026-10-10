@@ -8,21 +8,23 @@ import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
-import Orders from './pages/Orders'; // 👈 Make sure Orders is imported
+import Orders from './pages/Orders';
 import Checkout from './pages/Checkout';
 import Payment from './pages/Payment';
 
 import ProtectedRoute from './components/ProtectedRoute';
+import { LogoMark } from './components/Logo';
 
 function App() {
   const { loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
-        <div className="text-3xl font-bold text-purple-600 animate-pulse">
-          Loading Your Empire...
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-cream-100">
+        <span className="animate-bounce">
+          <LogoMark size={48} />
+        </span>
+        <p className="font-display text-lg italic text-ink-soft">Opening the shutters…</p>
       </div>
     );
   }
@@ -66,7 +68,7 @@ function App() {
           }
         />
 
-        {/* 🎯 HERE IS THE MISSING ORDERS ROUTE */}
+        {/* Order history */}
         <Route
           path="/orders"
           element={

@@ -17,7 +17,7 @@ export default function ScatterPlot({
 }) {
   const rows = Array.isArray(data) ? data : [];
   if (rows.length === 0) {
-    return <p className="text-center text-slate-400 text-sm py-8">No data for the selected filters.</p>;
+    return <p className="text-center text-ink-muted text-sm py-8">No data for the selected filters.</p>;
   }
 
   const W = 480;
@@ -49,11 +49,11 @@ export default function ScatterPlot({
         const gx = padL + t * plotW;
         return (
           <g key={t}>
-            <line x1={padL} y1={gy} x2={padL + plotW} y2={gy} stroke="#e2e8f0" strokeWidth="1" />
-            <text x={padL - 8} y={gy + 3} textAnchor="end" style={{ fontSize: 9 }} className="fill-slate-400">
+            <line x1={padL} y1={gy} x2={padL + plotW} y2={gy} stroke="#EFE8DB" strokeWidth="1" />
+            <text x={padL - 8} y={gy + 3} textAnchor="end" style={{ fontSize: 9 }} className="fill-ink-muted">
               {formatY(t * spanY)}
             </text>
-            <text x={gx} y={padT + plotH + 16} textAnchor="middle" style={{ fontSize: 9 }} className="fill-slate-400">
+            <text x={gx} y={padT + plotH + 16} textAnchor="middle" style={{ fontSize: 9 }} className="fill-ink-muted">
               {formatX(t * spanX)}
             </text>
           </g>
@@ -61,11 +61,11 @@ export default function ScatterPlot({
       })}
 
       {/* axes */}
-      <line x1={padL} y1={padT} x2={padL} y2={padT + plotH} stroke="#94a3b8" strokeWidth="1.5" />
-      <line x1={padL} y1={padT + plotH} x2={padL + plotW} y2={padT + plotH} stroke="#94a3b8" strokeWidth="1.5" />
+      <line x1={padL} y1={padT} x2={padL} y2={padT + plotH} stroke="#C9BFAE" strokeWidth="1.5" />
+      <line x1={padL} y1={padT + plotH} x2={padL + plotW} y2={padT + plotH} stroke="#C9BFAE" strokeWidth="1.5" />
 
       {/* axis labels */}
-      <text x={padL + plotW / 2} y={H - 6} textAnchor="middle" style={{ fontSize: 11 }} className="fill-slate-500 font-semibold">
+      <text x={padL + plotW / 2} y={H - 6} textAnchor="middle" style={{ fontSize: 11 }} className="fill-ink-muted font-semibold">
         {xLabel}
       </text>
       <text
@@ -73,7 +73,7 @@ export default function ScatterPlot({
         y={padT + plotH / 2}
         textAnchor="middle"
         style={{ fontSize: 11 }}
-        className="fill-slate-500 font-semibold"
+        className="fill-ink-muted font-semibold"
         transform={`rotate(-90 14 ${padT + plotH / 2})`}
       >
         {yLabel}
@@ -92,7 +92,7 @@ export default function ScatterPlot({
             <circle cx={cx} cy={cy} r="6" fill={PALETTE[i % PALETTE.length]} stroke="#fff" strokeWidth="1.5">
               <title>{`${d.label}: ${yLabel} ${formatY(d.y)}, ${xLabel} ${formatX(d.x)}`}</title>
             </circle>
-            <text x={cx + 9} y={cy + 3} style={{ fontSize: 9 }} className="fill-slate-600 font-medium">
+            <text x={cx + 9} y={cy + 3} style={{ fontSize: 9 }} className="fill-ink-soft font-medium">
               {d.label}
             </text>
           </g>

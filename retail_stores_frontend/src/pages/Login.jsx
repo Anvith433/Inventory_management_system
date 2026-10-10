@@ -1,17 +1,24 @@
 // src/pages/Login.jsx
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import AuthLayout from '../components/AuthLayout'
+import PasswordField from '../components/PasswordField'
+import Icon from '../components/Icon'
 
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '' })
+  const location = useLocation()
+  const [form, setForm] = useState({ email: location.state?.email || '', password: '' })
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const justRegistered = !!location.state?.registered
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setSubmitting(true)
 
     try {
       const payload = {
@@ -21,10 +28,6 @@ export default function Login() {
 
       const userData = await login(payload)
 
-      
-      console.log("USER DATA RECEIVED:", userData)
-
-     
       if (userData.role === 'ROLE_ADMIN') {
         navigate('/admindashboard', { replace: true })
       } else {
@@ -32,62 +35,70 @@ export default function Login() {
       }
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials')
+      setError(err.response?.data?.message || 'That email and password don’t match. Have another go?')
+    } finally {
+      setSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-100 p-6">
-      <div className="bg-white p-10 rounded-3xl shadow-2xl w-full max-w-md border border-gray-200">
-        <Link to="/" className="text-cyan-600 text-sm font-medium hover:underline">
-          Back to Home
+    <AuthLayout
+      panelTitle={<>Good to see you <span className="italic text-marigold-300">again.</span></>}
+      panelBody="Your basket is right where you left it. Sign in and pick up from the shops near you."
+    >
+      <p className="eyebrow">Sign in</p>
+      <h1 className="mt-2 font-display text-4xl font-medium tracking-tight text-ink">Welcome back</h1>
+      <p className="mt-2 text-ink-soft">
+        New here?{' '}
+        <Link to="/register" className="font-semibold text-forest-700 underline-offset-4 hover:underline">
+          Create an account
         </Link>
+      </p>
 
-        <h2 className="text-4xl font-bold text-center mt-8 mb-2 text-gray-800">
-          Welcome Back!
-        </h2>
-        <p className="text-center text-gray-600 mb-8">Login to your account</p>
+      {justRegistered && !error && (
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-forest-200 bg-forest-50 p-4 text-sm text-forest-800">
+          <Icon name="check" size={18} className="mt-0.5" />
+          <span>You’re all set. Sign in with your new account to start shopping.</span>
+        </div>
+      )}
 
-        {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center font-medium mb-6 border border-red-200">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="mt-6 flex items-start gap-3 rounded-xl border border-tomato-100 bg-tomato-50 p-4 text-sm text-tomato-700" role="alert">
+          <Icon name="alert" size={18} className="mt-0.5" />
+          <span>{error}</span>
+        </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+        <div>
+          <label htmlFor="email" className="label">Email</label>
           <input
+            id="email"
             type="email"
-            placeholder="Email Address"
+            autoComplete="email"
+            placeholder="you@example.com"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full p-4 border-2 border-gray-300 rounded-xl focus:border-cyan-500 outline-none text-lg transition-all"
+            className="field"
             required
           />
+        </div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            className="w-full p-4 border-2 border-gray-300 rounded-xl focus:border-cyan-500 outline-none text-lg transition-all"
-            required
-          />
+        <PasswordField
+          id="password"
+          label="Password"
+          autoComplete="current-password"
+          placeholder="Your password"
+          value={form.password}
+          onChange={(e) => setForm({ ...form, password: e.target.value })}
+          required
+        />
 
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
-          >
-            Login Securely
-          </button>
-        </form>
-
-        <p className="text-center mt-8 text-gray-600">
-          New here?{' '}
-          <Link to="/register" className="text-cyan-600 font-bold hover:underline">
-            Create Account
-          </Link>
-        </p>
-      </div>
-    </div>
+        <button type="submit" disabled={submitting} className="btn btn-primary btn-lg w-full">
+          {submitting ? 'Signing you in…' : 'Sign in'}
+          {!submitting && <Icon name="arrow-right" size={18} />}
+        </button>
+      </form>
+    </AuthLayout>
   )
 }

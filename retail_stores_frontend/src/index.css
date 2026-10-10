@@ -2,8 +2,117 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #f9fafb;
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    @apply bg-cream-100 font-sans text-ink antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+  }
+
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  ::selection {
+    @apply bg-marigold-200 text-ink;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-forest-500 ring-offset-2 ring-offset-cream-100;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted;
+  }
+
+  .card {
+    @apply rounded-2xl border border-line bg-white;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-lg {
+    @apply px-7 py-3.5 text-base;
+  }
+  .btn-sm {
+    @apply px-3.5 py-1.5 text-xs;
+  }
+  .btn-primary {
+    @apply bg-forest-700 text-cream-50 hover:bg-forest-800;
+  }
+  .btn-accent {
+    @apply bg-marigold-400 text-ink hover:bg-marigold-300;
+  }
+  .btn-outline {
+    @apply border border-ink/15 bg-white text-ink hover:border-ink/30 hover:bg-cream-50;
+  }
+  .btn-ghost {
+    @apply text-ink-soft hover:bg-cream-200/70 hover:text-ink;
+  }
+  .btn-danger {
+    @apply border border-tomato-100 bg-tomato-50 text-tomato-600 hover:bg-tomato-100;
+  }
+
+  /* Form fields */
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink-soft;
+  }
+  .field {
+    @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-[15px] text-ink placeholder:text-ink-muted/70 transition-colors focus:border-forest-500 focus:outline-none focus:ring-4 focus:ring-forest-100;
+  }
+  .field-readonly {
+    @apply w-full rounded-xl border border-dashed border-line bg-cream-50 px-4 py-3 text-[15px] text-ink-soft;
+  }
+
+  /* Loading placeholder */
+  .skeleton {
+    @apply rounded-xl animate-shimmer;
+    background: linear-gradient(90deg, #efe8db 0%, #f7f3ec 50%, #efe8db 100%);
+    background-size: 200% 100%;
+  }
+
+  /* Hand-drawn underline used on a few headline words */
+  .scribble {
+    @apply relative inline-block whitespace-nowrap;
+  }
+  .scribble > svg {
+    @apply pointer-events-none absolute -bottom-2 left-0 h-3 w-full text-marigold-400;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Subtle paper grain, used on dark brand panels */
+  .grain {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 14px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
