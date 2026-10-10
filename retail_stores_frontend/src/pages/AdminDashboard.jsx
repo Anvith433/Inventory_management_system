@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import Icon from '../components/Icon';
 
 import { getSummary, getShops, getTopProducts, getLowStock, getOutOfStock } from '../services/analytics';
 import { inr, num, pct, compactInr, tierClasses } from '../utils/format';
@@ -25,13 +27,13 @@ const errMsg = (err) => {
 
 // Segmented toggle (Top 5 / Top 10 / All etc.)
 const Toggle = ({ options, value, onChange }) => (
-  <div className="inline-flex rounded-lg bg-slate-100 p-0.5">
+  <div className="inline-flex rounded-full bg-cream-100 p-1">
     {options.map((o) => (
       <button
         key={String(o.value)}
         onClick={() => onChange(o.value)}
-        className={`px-2.5 py-1 rounded-md text-xs font-bold transition-colors ${
-          value === o.value ? 'bg-white text-cyan-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+        className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+          value === o.value ? 'bg-white text-ink shadow-soft' : 'text-ink-muted hover:text-ink'
         }`}
       >
         {o.label}
@@ -152,93 +154,78 @@ export default function AdminDashboard() {
     applied.from || applied.to ? `${applied.from || '…'} → ${applied.to || '…'}` : 'All time';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-blue-100 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-8 flex-1 space-y-6">
+      <main className="container-page py-8 sm:py-10 flex-1 space-y-6">
         {/* Header */}
-        <div className="bg-white/70 backdrop-blur-xl border border-white/80 p-6 sm:p-8 rounded-3xl shadow-xl shadow-slate-200/50">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-100/80 border border-purple-200 text-purple-800 text-xs font-bold uppercase tracking-wider mb-3">
-                <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
-                Business Intelligence
-              </div>
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                Shop{' '}
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Performance
-                </span>{' '}
-                Dashboard
-              </h1>
-              <p className="text-slate-600 mt-1 text-sm">
-                Real-time analytics across all shops · <span className="font-semibold">{periodLabel}</span>
-              </p>
-            </div>
-            <button
-              onClick={refreshAll}
-              className="px-5 py-2.5 rounded-xl font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition-all text-sm self-start"
-            >
-              🔄 Refresh
-            </button>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">Admin · Business overview</p>
+            <h1 className="mt-2 font-display text-4xl sm:text-5xl font-medium tracking-tight text-ink">
+              How the shops are doing
+            </h1>
+            <p className="mt-2 text-sm text-ink-muted">
+              Sales and stock across every shop · <span className="font-semibold text-ink-soft">{periodLabel}</span>
+            </p>
           </div>
+          <button onClick={refreshAll} className="btn btn-outline self-start md:self-auto">
+            <Icon name="refresh" size={16} />
+            Refresh
+          </button>
+        </div>
 
-          {/* Filter bar */}
-          <div className="mt-6 pt-5 border-t border-slate-100 flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Location</span>
-              <select
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              >
-                <option value="">All locations</option>
-                {locations.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">From</span>
-              <input
-                type="date"
-                value={draft.from}
-                onChange={(e) => setDraft((d) => ({ ...d, from: e.target.value }))}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">To</span>
-              <input
-                type="date"
-                value={draft.to}
-                onChange={(e) => setDraft((d) => ({ ...d, to: e.target.value }))}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Low-stock ≤</span>
-              <input
-                type="number"
-                min="0"
-                placeholder="10"
-                value={draft.lowStockThreshold}
-                onChange={(e) => setDraft((d) => ({ ...d, lowStockThreshold: e.target.value }))}
-                className="w-24 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400"
-              />
-            </label>
-            <button
-              onClick={applyFilters}
-              className="px-4 py-2 rounded-lg font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:brightness-110 shadow text-sm"
+        {/* Filter bar */}
+        <div className="card p-4 sm:p-5 flex flex-wrap items-end gap-3">
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-ink-muted">Location</span>
+            <select
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="h-10 rounded-xl border border-line bg-white px-3 text-sm font-medium text-ink focus:border-forest-500 focus:outline-none focus:ring-4 focus:ring-forest-100"
             >
+              <option value="">All locations</option>
+              {locations.map((l) => (
+                <option key={l} value={l}>
+                  {l}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-ink-muted">From</span>
+            <input
+              type="date"
+              value={draft.from}
+              onChange={(e) => setDraft((d) => ({ ...d, from: e.target.value }))}
+              className="h-10 rounded-xl border border-line bg-white px-3 text-sm text-ink focus:border-forest-500 focus:outline-none focus:ring-4 focus:ring-forest-100"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-ink-muted">To</span>
+            <input
+              type="date"
+              value={draft.to}
+              onChange={(e) => setDraft((d) => ({ ...d, to: e.target.value }))}
+              className="h-10 rounded-xl border border-line bg-white px-3 text-sm text-ink focus:border-forest-500 focus:outline-none focus:ring-4 focus:ring-forest-100"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-xs font-medium text-ink-muted">Low stock at or below</span>
+            <input
+              type="number"
+              min="0"
+              placeholder="10"
+              value={draft.lowStockThreshold}
+              onChange={(e) => setDraft((d) => ({ ...d, lowStockThreshold: e.target.value }))}
+              className="h-10 w-28 rounded-xl border border-line bg-white px-3 text-sm text-ink focus:border-forest-500 focus:outline-none focus:ring-4 focus:ring-forest-100"
+            />
+          </label>
+          <div className="flex gap-2">
+            <button onClick={applyFilters} className="btn btn-primary h-10">
               Apply
             </button>
-            <button
-              onClick={resetFilters}
-              className="px-4 py-2 rounded-lg font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 text-sm"
-            >
+            <button onClick={resetFilters} className="btn btn-ghost h-10">
               Reset
             </button>
           </div>
@@ -246,20 +233,20 @@ export default function AdminDashboard() {
 
         {/* Executive KPIs */}
         {S.summary.error ? (
-          <Panel title="Executive Summary" icon="📊" error={S.summary.error} onRetry={loadAnalytics} />
+          <Panel title="Executive Summary" icon="bar-chart" error={S.summary.error} onRetry={loadAnalytics} />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <KpiCard label="Total Revenue" value={inr(summary?.totalRevenue)} icon="💰" accent="emerald" loading={S.summary.loading} sublabel={`${num(summary?.totalOrders)} orders`} />
-            <KpiCard label="Avg Order Value" value={inr(summary?.averageOrderValue, 2)} icon="🧾" accent="cyan" loading={S.summary.loading} />
-            <KpiCard label="Products Sold" value={num(summary?.totalProductsSold)} icon="📦" accent="violet" loading={S.summary.loading} />
-            <KpiCard label="Inventory Value" value={inr(summary?.totalInventoryValue)} icon="🏬" accent="amber" loading={S.summary.loading} sublabel={`${num(summary?.totalStockUnits)} units in stock`} />
-            <KpiCard label="Total Shops" value={num(summary?.totalShops)} icon="🏪" accent="cyan" loading={S.summary.loading} />
-            <KpiCard label="Products" value={num(summary?.totalProducts)} icon="🏷️" accent="slate" loading={S.summary.loading} />
-            <KpiCard label="Customers" value={num(summary?.totalCustomers)} icon="👥" accent="violet" loading={S.summary.loading} />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <KpiCard label="Total Revenue" value={inr(summary?.totalRevenue)} icon="wallet" accent="emerald" loading={S.summary.loading} sublabel={`${num(summary?.totalOrders)} orders`} />
+            <KpiCard label="Avg Order Value" value={inr(summary?.averageOrderValue, 2)} icon="receipt" accent="cyan" loading={S.summary.loading} />
+            <KpiCard label="Products Sold" value={num(summary?.totalProductsSold)} icon="package" accent="violet" loading={S.summary.loading} />
+            <KpiCard label="Inventory Value" value={inr(summary?.totalInventoryValue)} icon="store" accent="amber" loading={S.summary.loading} sublabel={`${num(summary?.totalStockUnits)} units in stock`} />
+            <KpiCard label="Total Shops" value={num(summary?.totalShops)} icon="store" accent="cyan" loading={S.summary.loading} />
+            <KpiCard label="Products" value={num(summary?.totalProducts)} icon="tag" accent="slate" loading={S.summary.loading} />
+            <KpiCard label="Customers" value={num(summary?.totalCustomers)} icon="users" accent="violet" loading={S.summary.loading} />
             <KpiCard
               label="Stock Alerts"
               value={`${num(summary?.lowStockCount)} / ${num(summary?.outOfStockCount)}`}
-              icon="⚠️"
+              icon="alert"
               accent="rose"
               loading={S.summary.loading}
               sublabel={`low (≤${summary?.lowStockThreshold ?? 10}) / out`}
@@ -271,7 +258,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Panel
             title="Top Shops by Revenue"
-            icon="🏆"
+            icon="trophy"
             subtitle="Click a bar to drill into the shop"
             loading={S.shops.loading}
             error={S.shops.error}
@@ -288,14 +275,14 @@ export default function AdminDashboard() {
             <BarChartH
               data={topShops.map((s) => ({ id: s.shopId, label: s.shopName, value: s.revenue }))}
               formatValue={(v) => inr(v)}
-              barClass="bg-gradient-to-r from-emerald-500 to-teal-500"
+              barClass="bg-forest-600"
               onSelect={(d) => setSelectedShopId(d.id)}
             />
           </Panel>
 
           <Panel
             title="Revenue Contribution"
-            icon="🥧"
+            icon="pie-chart"
             subtitle="Share of total revenue by shop"
             loading={S.shops.loading}
             error={S.shops.error}
@@ -314,7 +301,7 @@ export default function AdminDashboard() {
         {/* Inventory */}
         <Panel
           title="Inventory Value by Shop"
-          icon="🏬"
+          icon="store"
           subtitle="Σ (price × stock quantity) per shop — independent of the date range"
           loading={S.shops.loading}
           error={S.shops.error}
@@ -326,7 +313,7 @@ export default function AdminDashboard() {
               .sort((a, b) => b.inventoryValue - a.inventoryValue)
               .map((s) => ({ id: s.shopId, label: s.shopName, value: s.inventoryValue, hint: `${num(s.stockUnits)} units` }))}
             formatValue={(v) => inr(v)}
-            barClass="bg-gradient-to-r from-indigo-500 to-violet-500"
+            barClass="bg-[#2F5F69]"
             onSelect={(d) => setSelectedShopId(d.id)}
           />
         </Panel>
@@ -334,7 +321,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Panel
             title="Low Stock"
-            icon="⚠️"
+            icon="alert"
             subtitle={`Products at or below threshold (${summary?.lowStockThreshold ?? (applied.lowStockThreshold || 10)})`}
             loading={S.lowStock.loading}
             error={S.lowStock.error}
@@ -347,13 +334,13 @@ export default function AdminDashboard() {
 
           <Panel
             title="Out of Stock"
-            icon="🚫"
+            icon="ban"
             subtitle="Products with zero stock"
             loading={S.outOfStock.loading}
             error={S.outOfStock.error}
             onRetry={loadAnalytics}
             isEmpty={!S.outOfStock.loading && (S.outOfStock.data || []).length === 0}
-            emptyText="Nothing is out of stock. 🎉"
+            emptyText="Nothing is out of stock. Nice."
           >
             <InventoryTable rows={S.outOfStock.data} tone="rose" />
           </Panel>
@@ -363,7 +350,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Panel
             title="Top Selling Products"
-            icon="🔥"
+            icon="trending"
             subtitle="By units sold across all shops"
             loading={S.topProducts.loading}
             error={S.topProducts.error}
@@ -380,13 +367,13 @@ export default function AdminDashboard() {
             <BarChartH
               data={topProducts.map((p) => ({ id: p.productId, label: p.pname, value: p.quantitySold, hint: p.shopName }))}
               formatValue={(v) => `${num(v)} u`}
-              barClass="bg-gradient-to-r from-orange-500 to-red-500"
+              barClass="bg-tomato-500"
             />
           </Panel>
 
           <Panel
             title="Orders by Shop"
-            icon="🧾"
+            icon="receipt"
             subtitle="Distinct finalized orders containing each shop’s products"
             loading={S.shops.loading}
             error={S.shops.error}
@@ -398,7 +385,7 @@ export default function AdminDashboard() {
                 .sort((a, b) => b.orderCount - a.orderCount)
                 .map((s) => ({ id: s.shopId, label: s.shopName, value: s.orderCount }))}
               formatValue={(v) => num(v)}
-              barClass="bg-gradient-to-r from-sky-500 to-cyan-500"
+              barClass="bg-marigold-500"
               onSelect={(d) => setSelectedShopId(d.id)}
             />
           </Panel>
@@ -406,7 +393,7 @@ export default function AdminDashboard() {
 
         <Panel
           title="Average Order Value by Shop"
-          icon="💳"
+          icon="card"
           subtitle="Revenue ÷ distinct orders per shop"
           loading={S.shops.loading}
           error={S.shops.error}
@@ -418,7 +405,7 @@ export default function AdminDashboard() {
               .sort((a, b) => b.averageOrderValue - a.averageOrderValue)
               .map((s) => ({ id: s.shopId, label: s.shopName, value: s.averageOrderValue }))}
             formatValue={(v) => inr(v, 2)}
-            barClass="bg-gradient-to-r from-fuchsia-500 to-purple-500"
+            barClass="bg-[#8A5A83]"
             onSelect={(d) => setSelectedShopId(d.id)}
           />
         </Panel>
@@ -426,13 +413,14 @@ export default function AdminDashboard() {
         {/* Efficiency: scatter */}
         <Panel
           title="Revenue vs Inventory"
-          icon="📈"
+          icon="trending"
           subtitle="Each dot is a shop — top-left = high sales on lean inventory (efficient); bottom-right = capital tied up in slow stock"
           loading={S.shops.loading}
           error={S.shops.error}
           onRetry={loadAnalytics}
           isEmpty={!S.shops.loading && filteredShops.length === 0}
         >
+          <div className="mx-auto max-w-3xl">
           <ScatterPlot
             data={filteredShops.map((s) => ({ id: s.shopId, label: s.shopName, x: s.inventoryValue, y: s.revenue }))}
             xLabel="Inventory Value"
@@ -441,12 +429,13 @@ export default function AdminDashboard() {
             formatY={compactInr}
             onSelect={(d) => setSelectedShopId(d.id)}
           />
+          </div>
         </Panel>
 
         {/* Performance matrix (sortable) */}
         <Panel
           title="Shop Performance Matrix"
-          icon="🧮"
+          icon="grid"
           subtitle="Sort any column · click a row for full shop detail · Score = 100 × (0.5·rev + 0.3·orders + 0.2·units), min-max normalized"
           loading={S.shops.loading}
           error={S.shops.error}
@@ -459,7 +448,7 @@ export default function AdminDashboard() {
         {/* Shop comparison */}
         <Panel
           title="Compare Two Shops"
-          icon="⚖️"
+          icon="scale"
           subtitle="Side-by-side, from already-loaded data"
           loading={S.shops.loading}
           error={S.shops.error}
@@ -470,7 +459,7 @@ export default function AdminDashboard() {
             <select
               value={cmpA}
               onChange={(e) => setCmpA(e.target.value)}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+              className="h-10 rounded-xl border border-line bg-white px-3 text-sm font-medium text-ink focus:border-forest-500 focus:outline-none focus:ring-4 focus:ring-forest-100"
             >
               <option value="">Select shop A…</option>
               {shops.map((s) => (
@@ -482,7 +471,7 @@ export default function AdminDashboard() {
             <select
               value={cmpB}
               onChange={(e) => setCmpB(e.target.value)}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+              className="h-10 rounded-xl border border-line bg-white px-3 text-sm font-medium text-ink focus:border-forest-500 focus:outline-none focus:ring-4 focus:ring-forest-100"
             >
               <option value="">Select shop B…</option>
               {shops.map((s) => (
@@ -495,70 +484,70 @@ export default function AdminDashboard() {
           {cmpShopA && cmpShopB ? (
             <CompareTable a={cmpShopA} b={cmpShopB} />
           ) : (
-            <p className="text-center text-slate-400 text-sm py-6">Pick two shops to compare.</p>
+            <p className="text-center text-ink-muted text-sm py-6">Pick two shops to compare.</p>
           )}
         </Panel>
 
         {/* Preserved existing analytics */}
         <div>
-          <h2 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2 px-1">
-            <span>🔎</span> Customer &amp; Product Insights
+          <h2 className="font-display text-2xl font-medium text-ink mb-4 mt-4 px-1">
+            Customers &amp; products
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Panel title="Top Spender" icon="💎" loading={S.hvCust.loading} error={S.hvCust.error} onRetry={loadLegacy} isEmpty={!S.hvCust.loading && !S.hvCust.data}>
+            <Panel title="Top Spender" icon="gem" loading={S.hvCust.loading} error={S.hvCust.error} onRetry={loadLegacy} isEmpty={!S.hvCust.loading && !S.hvCust.data}>
               {S.hvCust.data && (
                 <div className="text-center py-2">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-white font-extrabold text-2xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-16 h-16 rounded-full bg-marigold-200 text-marigold-700 font-display font-semibold text-2xl flex items-center justify-center mx-auto mb-3">
                     {S.hvCust.data.name?.[0]?.toUpperCase() || '?'}
                   </div>
-                  <p className="text-2xl font-black text-slate-800">{inr(S.hvCust.data.total, 2)}</p>
-                  <p className="text-sm font-semibold text-slate-500 mt-1">{S.hvCust.data.name}</p>
+                  <p className="font-display text-2xl font-semibold text-ink">{inr(S.hvCust.data.total, 2)}</p>
+                  <p className="text-sm font-semibold text-ink-muted mt-1">{S.hvCust.data.name}</p>
                 </div>
               )}
             </Panel>
 
-            <Panel title="Best Seller" icon="⭐" loading={S.mostProd.loading} error={S.mostProd.error} onRetry={loadLegacy} isEmpty={!S.mostProd.loading && !S.mostProd.data}>
+            <Panel title="Best Seller" icon="star" loading={S.mostProd.loading} error={S.mostProd.error} onRetry={loadLegacy} isEmpty={!S.mostProd.loading && !S.mostProd.data}>
               {S.mostProd.data && (
                 <div className="text-center py-2">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-500 to-pink-500 text-white text-2xl flex items-center justify-center mx-auto mb-3">
-                    🛍️
+                  <div className="w-16 h-16 rounded-2xl bg-forest-700 text-cream-50 flex items-center justify-center mx-auto mb-3">
+                    <Icon name="bag" size={28} strokeWidth={1.5} />
                   </div>
-                  <p className="text-xl font-black text-slate-800 truncate px-2">{S.mostProd.data.pname}</p>
-                  <p className="text-xs font-bold text-purple-600 uppercase tracking-wider mt-1">Most Ordered Item</p>
+                  <p className="font-display text-xl font-semibold text-ink truncate px-2">{S.mostProd.data.pname}</p>
+                  <p className="eyebrow mt-1">Most ordered item</p>
                 </div>
               )}
             </Panel>
 
-            <Panel title="Premium Products" icon="🏷️" subtitle="Priced above average" loading={S.aboveProd.loading} error={S.aboveProd.error} onRetry={loadLegacy} isEmpty={!S.aboveProd.loading && (S.aboveProd.data || []).length === 0}>
+            <Panel title="Premium Products" icon="tag" subtitle="Priced above average" loading={S.aboveProd.loading} error={S.aboveProd.error} onRetry={loadLegacy} isEmpty={!S.aboveProd.loading && (S.aboveProd.data || []).length === 0}>
               <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
                 {(S.aboveProd.data || []).map((p) => (
-                  <div key={p.productId} className="bg-slate-50 border border-slate-200/60 p-2.5 rounded-xl flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-700 truncate max-w-[150px]">{p.pname}</span>
-                    <span className="font-bold text-purple-600">{inr(p.price, 2)}</span>
+                  <div key={p.productId} className="bg-cream-50 border border-line p-2.5 rounded-xl flex justify-between items-center text-xs">
+                    <span className="font-semibold text-ink truncate max-w-[150px]">{p.pname}</span>
+                    <span className="font-semibold text-forest-700">{inr(p.price, 2)}</span>
                   </div>
                 ))}
               </div>
             </Panel>
 
-            <Panel title="Loyal Customers" icon="🛡️" subtitle="Above-average order counts" loading={S.aboveCust.loading} error={S.aboveCust.error} onRetry={loadLegacy} isEmpty={!S.aboveCust.loading && (S.aboveCust.data || []).length === 0}>
+            <Panel title="Loyal Customers" icon="heart" subtitle="Above-average order counts" loading={S.aboveCust.loading} error={S.aboveCust.error} onRetry={loadLegacy} isEmpty={!S.aboveCust.loading && (S.aboveCust.data || []).length === 0}>
               <div className="grid grid-cols-3 gap-2">
                 {(S.aboveCust.data || []).slice(0, 9).map((c) => (
-                  <div key={c.customerId} className="bg-slate-50 border border-slate-200/60 p-2 rounded-xl text-center flex flex-col items-center">
-                    <div className="w-8 h-8 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-extrabold mb-1">
+                  <div key={c.customerId} className="bg-cream-50 border border-line p-2 rounded-xl text-center flex flex-col items-center">
+                    <div className="w-8 h-8 bg-forest-100 text-forest-700 rounded-full flex items-center justify-center text-xs font-semibold mb-1">
                       {c.name?.[0]?.toUpperCase() || '?'}
                     </div>
-                    <p className="text-[11px] font-semibold text-slate-700 truncate w-full">{c.name}</p>
+                    <p className="text-[11px] font-semibold text-ink truncate w-full">{c.name}</p>
                   </div>
                 ))}
               </div>
             </Panel>
 
-            <Panel title="High-Value Shops" icon="🏪" subtitle="Existing metric (inventory value)" loading={S.hvShops.loading} error={S.hvShops.error} onRetry={loadLegacy} isEmpty={!S.hvShops.loading && (S.hvShops.data || []).length === 0}>
+            <Panel title="High-Value Shops" icon="store" subtitle="Existing metric (inventory value)" loading={S.hvShops.loading} error={S.hvShops.error} onRetry={loadLegacy} isEmpty={!S.hvShops.loading && (S.hvShops.data || []).length === 0}>
               <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
                 {(S.hvShops.data || []).map((s) => (
-                  <div key={s.shopId} className="bg-slate-50 border border-slate-200/60 p-2.5 rounded-xl flex justify-between items-center text-xs">
-                    <span className="font-semibold text-slate-700 truncate max-w-[150px]">{s.shopName}</span>
-                    <span className="font-bold text-emerald-600">{inr(s.inventoryValue)}</span>
+                  <div key={s.shopId} className="bg-cream-50 border border-line p-2.5 rounded-xl flex justify-between items-center text-xs">
+                    <span className="font-semibold text-ink truncate max-w-[150px]">{s.shopName}</span>
+                    <span className="font-semibold text-forest-600">{inr(s.inventoryValue)}</span>
                   </div>
                 ))}
               </div>
@@ -567,9 +556,7 @@ export default function AdminDashboard() {
         </div>
       </main>
 
-      <footer className="py-6 text-center text-xs text-slate-500 border-t border-slate-200/60 bg-white/40">
-        © {new Date().getFullYear()} Retail Store Management · Business Intelligence
-      </footer>
+      <Footer />
 
       <ShopDetailModal shopId={selectedShopId} filters={filters} onClose={() => setSelectedShopId(null)} />
     </div>
@@ -579,27 +566,27 @@ export default function AdminDashboard() {
 // ---- small local components ---------------------------------------------
 function InventoryTable({ rows = [], tone = 'amber' }) {
   const list = rows || [];
-  const stockColor = tone === 'rose' ? 'text-rose-600' : 'text-amber-600';
+  const stockColor = tone === 'rose' ? 'text-tomato-600' : 'text-marigold-600';
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-slate-500 text-[11px] uppercase tracking-wider">
-            <th className="px-2 py-1.5 text-left font-bold">Product</th>
-            <th className="px-2 py-1.5 text-left font-bold">Shop</th>
-            <th className="px-2 py-1.5 text-right font-bold">Stock</th>
-            <th className="px-2 py-1.5 text-right font-bold">Price</th>
-            <th className="px-2 py-1.5 text-right font-bold">Inv. Value</th>
+          <tr className="text-ink-muted text-[11px] uppercase tracking-wider">
+            <th className="px-2 py-1.5 text-left font-semibold">Product</th>
+            <th className="px-2 py-1.5 text-left font-semibold">Shop</th>
+            <th className="px-2 py-1.5 text-right font-semibold">Stock</th>
+            <th className="px-2 py-1.5 text-right font-semibold">Price</th>
+            <th className="px-2 py-1.5 text-right font-semibold">Inv. Value</th>
           </tr>
         </thead>
         <tbody>
           {list.map((p) => (
-            <tr key={p.productId} className="border-t border-slate-100">
-              <td className="px-2 py-1.5 font-semibold text-slate-800 whitespace-nowrap">{p.pname}</td>
-              <td className="px-2 py-1.5 text-slate-500 whitespace-nowrap">{p.shopName || '—'}</td>
-              <td className={`px-2 py-1.5 text-right font-bold tabular-nums ${stockColor}`}>{num(p.stockQuantity)}</td>
-              <td className="px-2 py-1.5 text-right text-slate-600 tabular-nums">{inr(p.price, 2)}</td>
-              <td className="px-2 py-1.5 text-right text-slate-600 tabular-nums">{inr(p.inventoryValue)}</td>
+            <tr key={p.productId} className="border-t border-line">
+              <td className="px-2 py-1.5 font-semibold text-ink whitespace-nowrap">{p.pname}</td>
+              <td className="px-2 py-1.5 text-ink-muted whitespace-nowrap">{p.shopName || '—'}</td>
+              <td className={`px-2 py-1.5 text-right font-semibold tabular-nums ${stockColor}`}>{num(p.stockQuantity)}</td>
+              <td className="px-2 py-1.5 text-right text-ink-soft tabular-nums">{inr(p.price, 2)}</td>
+              <td className="px-2 py-1.5 text-right text-ink-soft tabular-nums">{inr(p.inventoryValue)}</td>
             </tr>
           ))}
         </tbody>
@@ -624,12 +611,12 @@ function CompareTable({ a, b }) {
     <table className="w-full text-sm">
       <thead>
         <tr>
-          <th className="px-2 py-2 text-left text-[11px] uppercase tracking-wider font-bold text-slate-400">Metric</th>
-          <th className="px-2 py-2 text-right font-extrabold text-slate-800">
+          <th className="px-2 py-2 text-left text-[11px] uppercase tracking-wider font-semibold text-ink-muted">Metric</th>
+          <th className="px-2 py-2 text-right font-semibold text-ink">
             {a.shopName}
             <span className={`ml-2 inline-block px-2 py-0.5 rounded-full border text-[10px] ${tierClasses(a.performanceTier)}`}>{a.performanceTier}</span>
           </th>
-          <th className="px-2 py-2 text-right font-extrabold text-slate-800">
+          <th className="px-2 py-2 text-right font-semibold text-ink">
             {b.shopName}
             <span className={`ml-2 inline-block px-2 py-0.5 rounded-full border text-[10px] ${tierClasses(b.performanceTier)}`}>{b.performanceTier}</span>
           </th>
@@ -637,10 +624,10 @@ function CompareTable({ a, b }) {
       </thead>
       <tbody>
         {rows.map(([label, va, vb]) => (
-          <tr key={label} className="border-t border-slate-100">
-            <td className="px-2 py-2 text-slate-500 font-medium">{label}</td>
-            <td className="px-2 py-2 text-right font-bold text-slate-800 tabular-nums">{va}</td>
-            <td className="px-2 py-2 text-right font-bold text-slate-800 tabular-nums">{vb}</td>
+          <tr key={label} className="border-t border-line">
+            <td className="px-2 py-2 text-ink-muted font-medium">{label}</td>
+            <td className="px-2 py-2 text-right font-semibold text-ink tabular-nums">{va}</td>
+            <td className="px-2 py-2 text-right font-semibold text-ink tabular-nums">{vb}</td>
           </tr>
         ))}
       </tbody>

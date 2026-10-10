@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 export default function BarChartH({
   data = [],
   formatValue = (v) => String(v),
-  barClass = 'bg-gradient-to-r from-cyan-500 to-blue-500',
+  barClass = 'bg-forest-600',
   onSelect,
   emptyText = 'No data for the selected filters.',
 }) {
@@ -17,7 +17,7 @@ export default function BarChartH({
   const max = rows.reduce((m, d) => Math.max(m, Number(d.value) || 0), 0);
 
   if (rows.length === 0) {
-    return <p className="text-center text-slate-400 text-sm py-8">{emptyText}</p>;
+    return <p className="text-center text-ink-muted text-sm py-8">{emptyText}</p>;
   }
 
   return (
@@ -44,20 +44,20 @@ export default function BarChartH({
                 : undefined
             }
           >
-            <div className="w-28 shrink-0 text-right text-xs font-semibold text-slate-600 truncate" title={d.label}>
+            <div className="w-28 shrink-0 text-right text-xs font-semibold text-ink-soft truncate" title={d.label}>
               {d.label}
             </div>
-            <div className="flex-1 h-6 rounded-lg bg-slate-100 overflow-hidden relative">
+            <div className="flex-1 h-6 rounded-md bg-cream-100 overflow-hidden relative">
               <div
-                className={`h-full rounded-lg ${barClass} transition-all duration-500 ${
+                className={`h-full rounded-md ${barClass} transition-all duration-500 ${
                   clickable ? 'group-hover:brightness-110' : ''
                 }`}
                 style={{ width: `${widthPct}%` }}
               />
             </div>
-            <div className="w-24 shrink-0 text-xs font-bold text-slate-800 tabular-nums">
+            <div className="w-24 shrink-0 text-xs font-bold text-ink tabular-nums">
               {formatValue(value)}
-              {d.hint ? <span className="block text-[10px] font-medium text-slate-400">{d.hint}</span> : null}
+              {d.hint ? <span className="block text-[10px] font-medium text-ink-muted">{d.hint}</span> : null}
             </div>
           </div>
         );

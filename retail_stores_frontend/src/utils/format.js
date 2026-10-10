@@ -16,6 +16,13 @@ export function inr(value, decimals = 0) {
   return inrFmt(decimals).format(n);
 }
 
+/** Shop price: whole rupees stay whole (₹100), paise show two decimals (₹99.50). */
+export function price(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '₹0';
+  return inr(n, Number.isInteger(n) ? 0 : 2);
+}
+
 /** Plain grouped integer, e.g. num(3169) -> "3,169". */
 export function num(value) {
   const n = Number(value);
@@ -47,10 +54,10 @@ export function compactInr(value) {
 export function tierClasses(tier) {
   switch ((tier || '').toUpperCase()) {
     case 'HIGH':
-      return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      return 'bg-forest-100 text-forest-700 border-forest-200';
     case 'MEDIUM':
-      return 'bg-amber-100 text-amber-700 border-amber-200';
+      return 'bg-marigold-100 text-marigold-700 border-marigold-200';
     default:
-      return 'bg-rose-100 text-rose-700 border-rose-200';
+      return 'bg-tomato-100 text-tomato-700 border-tomato-100';
   }
 }

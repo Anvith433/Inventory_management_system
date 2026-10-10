@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import Icon from '../Icon';
 
 /**
  * Section wrapper for every analytics panel. Renders title/subtitle + optional
@@ -21,41 +22,41 @@ export default function Panel({
   children,
 }) {
   return (
-    <section
-      className={`bg-white/80 backdrop-blur-xl border border-white rounded-3xl shadow-xl shadow-slate-200/50 p-5 sm:p-6 ${className}`}
-    >
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
-        <div>
-          <h2 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
-            {icon && <span className="text-lg">{icon}</span>}
-            {title}
-          </h2>
-          {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+    <section className={`card p-5 sm:p-6 ${className}`}>
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          {icon && (
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cream-100 text-ink-soft">
+              {typeof icon === 'string' ? <Icon name={icon} size={16} /> : icon}
+            </span>
+          )}
+          <div>
+            <h2 className="font-display text-lg font-medium text-ink">{title}</h2>
+            {subtitle && <p className="mt-0.5 text-xs leading-relaxed text-ink-muted">{subtitle}</p>}
+          </div>
         </div>
-        {toolbar && <div className="flex items-center gap-2 flex-wrap">{toolbar}</div>}
+        {toolbar && <div className="flex flex-wrap items-center gap-2">{toolbar}</div>}
       </div>
 
       <div className="min-h-[120px]">
         {loading ? (
-          <div className="flex items-center justify-center py-10 text-slate-400 gap-2 text-sm">
-            <span className="w-4 h-4 rounded-full border-2 border-slate-300 border-t-cyan-500 animate-spin" />
+          <div className="flex items-center justify-center gap-2 py-10 text-sm text-ink-muted">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-cream-300 border-t-forest-700" />
             Loading…
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center py-8 gap-2 text-center">
-            <p className="text-sm font-semibold text-rose-600">Couldn’t load this section.</p>
-            <p className="text-xs text-slate-400 max-w-md break-words">{String(error)}</p>
+          <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
+            <p className="text-sm font-semibold text-tomato-600">Couldn’t load this section.</p>
+            <p className="max-w-md break-words text-xs text-ink-muted">{String(error)}</p>
             {onRetry && (
-              <button
-                onClick={onRetry}
-                className="mt-1 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
-              >
+              <button onClick={onRetry} className="btn btn-outline btn-sm mt-1">
+                <Icon name="refresh" size={13} />
                 Retry
               </button>
             )}
           </div>
         ) : isEmpty ? (
-          <p className="text-center text-slate-400 text-sm py-10">{emptyText}</p>
+          <p className="py-10 text-center text-sm text-ink-muted">{emptyText}</p>
         ) : (
           children
         )}

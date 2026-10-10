@@ -1,32 +1,31 @@
 import PropTypes from 'prop-types';
+import Icon from '../Icon';
 
 const ACCENTS = {
-  cyan: 'from-cyan-500 to-blue-500',
-  emerald: 'from-emerald-500 to-teal-500',
-  violet: 'from-violet-500 to-purple-500',
-  amber: 'from-amber-500 to-orange-500',
-  rose: 'from-rose-500 to-pink-500',
-  slate: 'from-slate-500 to-slate-600',
+  cyan: 'bg-[#E0ECEE] text-[#2F5F69]',
+  emerald: 'bg-forest-50 text-forest-700',
+  violet: 'bg-[#E9E1F0] text-[#5F3F7A]',
+  amber: 'bg-marigold-100 text-marigold-700',
+  rose: 'bg-tomato-50 text-tomato-600',
+  slate: 'bg-cream-200 text-ink-soft',
 };
 
-/** Compact executive KPI tile. */
+/** Compact executive KPI tile. `icon` is an Icon name. */
 export default function KpiCard({ label, value, sublabel, icon, accent = 'cyan', loading = false }) {
   return (
-    <div className="bg-white/80 backdrop-blur-xl border border-white rounded-2xl shadow-lg shadow-slate-200/50 p-4 flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
-        <span
-          className={`w-8 h-8 rounded-xl bg-gradient-to-tr ${ACCENTS[accent] || ACCENTS.cyan} text-white flex items-center justify-center text-sm shadow`}
-        >
-          {icon}
+    <div className="card flex flex-col gap-3 p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[13px] font-medium text-ink-muted">{label}</span>
+        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${ACCENTS[accent] || ACCENTS.cyan}`}>
+          {typeof icon === 'string' ? <Icon name={icon} size={16} /> : icon}
         </span>
       </div>
       {loading ? (
-        <div className="h-7 w-24 bg-slate-200 rounded animate-pulse" />
+        <div className="skeleton h-8 w-28" />
       ) : (
-        <p className="text-2xl font-black text-slate-900 tabular-nums leading-tight">{value}</p>
+        <p className="font-display text-[26px] font-semibold leading-none tracking-tight text-ink tabular">{value}</p>
       )}
-      {sublabel ? <p className="text-xs font-medium text-slate-400">{sublabel}</p> : null}
+      {sublabel ? <p className="text-xs text-ink-muted">{sublabel}</p> : null}
     </div>
   );
 }

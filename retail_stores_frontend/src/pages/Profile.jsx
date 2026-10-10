@@ -1,11 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import Icon from '../components/Icon';
 import api from '../services/api';
 
+function Detail({ label, value, note, mono = false }) {
+  return (
+    <div className="py-4 sm:grid sm:grid-cols-[180px_1fr] sm:gap-6">
+      <dt className="text-sm text-ink-muted">
+        {label}
+        {note && <span className="block text-xs text-ink-muted/80">{note}</span>}
+      </dt>
+      <dd className={`mt-1 text-[15px] font-medium text-ink sm:mt-0 ${mono ? 'font-mono text-sm' : ''}`}>{value || '—'}</dd>
+    </div>
+  );
+}
+
 export default function Profile() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,26 +47,21 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-blue-100 flex flex-col justify-between">
+      <div className="flex min-h-screen flex-col">
         <Navbar />
-        <main className="flex-1 flex items-center justify-center p-6">
-          <div className="bg-white/80 backdrop-blur-xl border border-white/80 p-8 rounded-3xl shadow-2xl text-center max-w-sm w-full">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-100 text-cyan-600 text-2xl flex items-center justify-center mx-auto mb-3">
-              🔒
-            </div>
-            <p className="text-slate-700 font-bold text-lg">Access Restricted</p>
-            <p className="text-slate-500 text-xs mt-1 mb-6">Please login to view your profile information.</p>
-            <Link
-              to="/login"
-              className="w-full py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg hover:shadow-purple-500/25 transition-all block text-center text-sm"
-            >
-              Sign In
+        <main className="flex flex-1 items-center justify-center p-6">
+          <div className="card w-full max-w-sm p-8 text-center">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-cream-200 text-ink-soft">
+              <Icon name="lock" size={22} />
+            </span>
+            <p className="mt-4 font-display text-xl font-medium text-ink">Please sign in</p>
+            <p className="mt-1 text-sm text-ink-muted">You’ll need to be signed in to see your profile.</p>
+            <Link to="/login" className="btn btn-primary mt-6 w-full">
+              Sign in
             </Link>
           </div>
         </main>
-        <footer className="py-6 text-center text-xs text-slate-500 border-t border-slate-200/60 bg-white/40">
-          © {new Date().getFullYear()} Retail Store Management. All rights reserved.
-        </footer>
+        <Footer />
       </div>
     );
   }
@@ -108,235 +118,185 @@ export default function Profile() {
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setMessage({ type: 'success', text: 'Saved. Your details are up to date.' });
       setIsEditing(false);
     } catch (err) {
       console.error('Profile update error:', err);
       setMessage({
         type: 'error',
-        text: err.response?.data?.message || err.response?.data || 'Failed to update profile. Try again.',
+        text: err.response?.data?.message || err.response?.data || 'We couldn’t save that. Please try again.',
       });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const isAdmin = user.role?.toUpperCase().includes('ADMIN');
+  const sideLink = ({ isActive }) =>
+    `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+      isActive ? 'bg-forest-50 text-forest-800' : 'text-ink-soft hover:bg-cream-100 hover:text-ink'
+    }`;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-slate-50 to-blue-100 flex flex-col justify-between">
+    <div className="flex min-h-screen flex-col">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto w-full px-6 py-10 flex-1 flex flex-col justify-center">
-        <div className="bg-white/80 backdrop-blur-xl border border-white/80 p-8 sm:p-10 rounded-3xl shadow-2xl relative">
-          
-          {/* Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-slate-100 pb-6">
-            <div>
-              <Link
-                to="/dashboard"
-                className="text-cyan-600 hover:text-cyan-700 text-xs font-bold uppercase tracking-wider transition-colors inline-block mb-2"
-              >
-                ← Back to Dashboard
-              </Link>
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                Profile <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Information</span>
-              </h1>
-            </div>
+      <main className="container-page flex-1 py-8 sm:py-12">
+        <p className="eyebrow">Your account</p>
+        <h1 className="mt-2 font-display text-4xl font-medium tracking-tight text-ink sm:text-5xl">Profile &amp; address</h1>
 
-            {/* Avatar Pill Badge */}
-            <div className="flex items-center gap-3 bg-slate-50/80 border border-slate-200/60 px-4 py-2 rounded-2xl self-start sm:self-auto">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-cyan-500/20">
+        <div className="mt-8 grid items-start gap-6 lg:grid-cols-[280px_1fr]">
+          {/* Sidebar */}
+          <aside className="card p-5">
+            <div className="flex items-center gap-4 border-b border-line pb-5">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-marigold-200 font-display text-2xl font-semibold text-marigold-700">
                 {user.name?.[0]?.toUpperCase() || 'U'}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-display text-lg font-medium text-ink">{user.name}</p>
+                <p className="text-xs text-ink-muted">{isAdmin ? 'Administrator' : 'Customer'}</p>
               </div>
+            </div>
+            <nav className="mt-4 space-y-1">
+              <NavLink to="/profile" className={sideLink}>
+                <Icon name="user" size={18} />
+                Profile &amp; address
+              </NavLink>
+              <NavLink to="/orders" className={sideLink}>
+                <Icon name="receipt" size={18} />
+                My orders
+              </NavLink>
+              {isAdmin && (
+                <NavLink to="/admindashboard" className={sideLink}>
+                  <Icon name="dashboard" size={18} />
+                  Admin dashboard
+                </NavLink>
+              )}
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-tomato-600 transition-colors hover:bg-tomato-50"
+              >
+                <Icon name="logout" size={18} />
+                Sign out
+              </button>
+            </nav>
+          </aside>
+
+          {/* Content */}
+          <section className="card p-6 sm:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold text-slate-800">{user.name}</p>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200/60 inline-block">
-                  {user.role === 'ADMIN' ? 'Administrator' : 'Customer'}
-                </span>
+                <h2 className="font-display text-2xl font-medium text-ink">
+                  {isEditing ? 'Edit your details' : 'Your details'}
+                </h2>
+                <p className="mt-1 text-sm text-ink-muted">
+                  {isEditing
+                    ? 'Your email and city can’t be changed here.'
+                    : 'This is where the shops will deliver your orders.'}
+                </p>
               </div>
-            </div>
-          </div>
-
-          {/* Feedback Banner */}
-          {message.text && (
-            <div
-              className={`mb-6 p-4 rounded-2xl text-xs font-bold ${
-                message.type === 'success'
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-rose-50 text-rose-700 border border-rose-200'
-              }`}
-            >
-              {message.text}
-            </div>
-          )}
-
-          {/* If EDIT MODE is OFF: Show values + Edit Button */}
-          {!isEditing ? (
-            <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Full Name
-                  </label>
-                  <p className="p-3.5 border border-slate-200/80 rounded-2xl bg-slate-50/70 text-slate-800 font-medium text-sm">
-                    {user.name}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Email Address
-                  </label>
-                  <p className="p-3.5 border border-slate-200/80 rounded-2xl bg-slate-100 text-slate-500 font-medium text-sm cursor-not-allowed">
-                    {user.email}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Street Address
-                  </label>
-                  <p className="p-3.5 border border-slate-200/80 rounded-2xl bg-slate-50/70 text-slate-800 font-medium text-sm">
-                    {user.street || user.address || '—'}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                    City <span className="text-[10px] text-slate-400 font-normal">(Cannot be changed)</span>
-                  </label>
-                  <p className="p-3.5 border border-slate-200/80 rounded-2xl bg-slate-100 text-slate-400 font-medium text-sm cursor-not-allowed select-none">
-                    {user.city || '—'}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Pincode
-                  </label>
-                  <p className="p-3.5 border border-slate-200/80 rounded-2xl bg-slate-50/70 text-slate-800 font-medium text-sm">
-                    {user.pincode || '—'}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Customer ID
-                  </label>
-                  <p className="p-3.5 border border-slate-200/80 rounded-2xl bg-slate-100 text-slate-500 font-medium text-sm font-mono cursor-not-allowed">
-                    #{user.customerId || user.customer_id}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={handleStartEditing}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3.5 rounded-2xl font-bold text-sm text-center hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-200"
-                >
-                  Edit Profile Details
+              {!isEditing && (
+                <button type="button" onClick={handleStartEditing} className="btn btn-outline">
+                  <Icon name="pencil" size={15} />
+                  Edit
                 </button>
-              </div>
+              )}
             </div>
-          ) : (
-            /* If EDIT MODE is ON: Show editable form inputs */
-            <form onSubmit={handleSave}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full p-3.5 border border-purple-300 rounded-2xl bg-white text-slate-800 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
-                    required
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Email Address
-                  </label>
-                  <p className="p-3.5 border border-slate-200/80 rounded-2xl bg-slate-100 text-slate-500 font-medium text-sm cursor-not-allowed">
-                    {user.email}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Street Address
-                  </label>
-                  <input
-                    type="text"
-                    name="street"
-                    value={formData.street}
-                    onChange={handleChange}
-                    placeholder="Enter street address"
-                    className="w-full p-3.5 border border-purple-300 rounded-2xl bg-white text-slate-800 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                    City <span className="text-[10px] text-slate-400 font-normal">(Cannot be changed)</span>
-                  </label>
-                  <p className="p-3.5 border border-slate-200/80 rounded-2xl bg-slate-100 text-slate-400 font-medium text-sm cursor-not-allowed select-none">
-                    {user.city || '—'}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Pincode
-                  </label>
-                  <input
-                    type="text"
-                    name="pincode"
-                    maxLength={6}
-                    value={formData.pincode}
-                    onChange={handleChange}
-                    className="w-full p-3.5 border border-purple-300 rounded-2xl bg-white text-slate-800 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-                    Customer ID
-                  </label>
-                  <p className="p-3.5 border border-slate-200/80 rounded-2xl bg-slate-100 text-slate-500 font-medium text-sm font-mono cursor-not-allowed">
-                    #{user.customerId || user.customer_id}
-                  </p>
-                </div>
+            {message.text && (
+              <div
+                className={`mt-6 flex items-center gap-3 rounded-xl border p-4 text-sm ${
+                  message.type === 'success'
+                    ? 'border-forest-200 bg-forest-50 text-forest-800'
+                    : 'border-tomato-100 bg-tomato-50 text-tomato-700'
+                }`}
+              >
+                <Icon name={message.type === 'success' ? 'check' : 'alert'} size={18} />
+                {String(message.text)}
               </div>
+            )}
 
-              <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3.5 rounded-2xl font-bold text-sm text-center hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-200 disabled:opacity-50"
-                >
-                  {loading ? 'Saving...' : 'Save Changes'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="px-6 py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all duration-200"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          )}
+            {!isEditing ? (
+              <dl className="mt-4 divide-y divide-line">
+                <Detail label="Full name" value={user.name} />
+                <Detail label="Email" value={user.email} />
+                <Detail label="House & street" value={user.street || user.address} />
+                <Detail label="City" value={user.city} note="Can’t be changed" />
+                <Detail label="Pincode" value={user.pincode} />
+                <Detail label="Customer ID" value={`#${user.customerId || user.customer_id || '—'}`} mono />
+              </dl>
+            ) : (
+              <form onSubmit={handleSave} className="mt-6">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label htmlFor="name" className="label">Full name</label>
+                    <input id="name" type="text" name="name" value={formData.name} onChange={handleChange} className="field" required />
+                  </div>
 
+                  <div className="sm:col-span-2">
+                    <label htmlFor="street" className="label">House &amp; street</label>
+                    <input
+                      id="street"
+                      type="text"
+                      name="street"
+                      value={formData.street}
+                      onChange={handleChange}
+                      placeholder="Enter street address"
+                      className="field"
+                    />
+                  </div>
+
+                  <div>
+                    <span className="label">City</span>
+                    <p className="field-readonly flex items-center justify-between">
+                      {user.city || '—'}
+                      <Icon name="lock" size={15} className="text-ink-muted" />
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="pincode" className="label">Pincode</label>
+                    <input
+                      id="pincode"
+                      type="text"
+                      name="pincode"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={formData.pincode}
+                      onChange={handleChange}
+                      className="field"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <span className="label">Email</span>
+                    <p className="field-readonly flex items-center justify-between">
+                      {user.email}
+                      <Icon name="lock" size={15} className="text-ink-muted" />
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:justify-end">
+                  <button type="button" onClick={handleCancel} className="btn btn-ghost">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={loading} className="btn btn-primary">
+                    {loading ? 'Saving…' : 'Save changes'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </section>
         </div>
       </main>
 
-      <footer className="py-6 text-center text-xs text-slate-500 border-t border-slate-200/60 bg-white/40">
-        © {new Date().getFullYear()} Retail Store Management. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }
